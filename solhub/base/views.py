@@ -44,6 +44,7 @@ def loginPage(request):
     context = {'page': page}
     return render(request, 'base/login_register.html', context)
 
+
 def logoutUser(request):
     logout(request)
     return redirect('home')
@@ -81,8 +82,8 @@ def home(request):
 
 def room(request, pk):
     room = Room.objects.get(id = pk)
-    messages = room.message_set.all()
-    context = {'room':room, 'messages':messages}
+    room_messages = room.message_set.all().order_by('-created')
+    context = {'room':room, 'room_messages':room_messages}
     return render(request, 'base/room.html', context)
 
 @login_required(login_url='login')
