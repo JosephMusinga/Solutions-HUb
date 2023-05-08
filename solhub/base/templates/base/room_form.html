@@ -45,19 +45,9 @@
             {{form.description}}
           </div>
 
-          <!-- <div class="form__group">
-            <label for="room_topic">Topic</label>
-            <input required type="text" name="topic" id="room_topic" list="topic-list" />
-            <datalist id="topic-list">
-              <select id="room_topic">
-                <option value="">Select your topic</option>
-                <option value="Python">Python</option>
-                <option value="Django">Django</option>
-              </select>
-            </datalist>
-
-          </div> -->
-
+          {% if error %}
+          <input type="hidden" name="error" id="form-error" value="{{ error }}">
+          {% endif %}
 
           <div class="form__action">
             <a class="btn btn--dark" href="{{request.META.HTTP_REFERER}}">Cancel</a>
@@ -67,5 +57,22 @@
       </div>
     </div>
   </div>
+
+  <script>
+    const submitBtn = document.getElementById('submit-btn');
+    const formError = document.getElementById('form-error');
+  
+    if (formError) {
+      confirm(formError.value);
+    }
+  
+    submitBtn.addEventListener('click', () => {
+      const topicInput = document.querySelector('input[name="topic"]');
+      
+      const showBtn = document.getElementById('show-btn');
+      showBtn.href = `/search-similar?topic=${topicInput.value}`;
+    });
+  </script>
+  
 
   {% endblock content %}
