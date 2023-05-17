@@ -50,29 +50,13 @@
           {% endif %}
 
           <div class="form__action">
-            <a class="btn btn--dark" href="{{request.META.HTTP_REFERER}}">Cancel</a>
+            <a class="btn btn--dark"  id="cancel-btn" href="{{request.META.HTTP_REFERER}}">Cancel</a>
             <button class="btn btn--main" type="submit">Submit</button>
           </div>
         </form>
       </div>
     </div>
   </div>
-
-  <script>
-    const submitBtn = document.getElementById('submit-btn');
-    const formError = document.getElementById('form-error');
   
-    if (formError) {
-      confirm(formError.value);
-    }
   
-    submitBtn.addEventListener('click', () => {
-      const topicInput = document.querySelector('input[name="topic"]');
-      
-      const showBtn = document.getElementById('show-btn');
-      showBtn.href = `/search-similar?topic=${topicInput.value}`;
-    });
-  </script>
-  
-
   {% endblock content %}

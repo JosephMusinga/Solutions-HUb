@@ -109,34 +109,20 @@ def userProfile(request, pk):
 def createRoom(request):
     form = RoomForm()
     topics = Topic.objects.all()
-
-    # Define a function that filters rooms by name
-    def get_matching_rooms(name):
-        return Room.objects.filter(name__icontains=name)
-
     if request.method == 'POST':
         topic_name = request.POST.get('topic')
         topic, created = Topic.objects.get_or_create(name=topic_name)
 
-        name = request.POST.get('name')
-        matching_rooms = get_matching_rooms(name)
-
-        if matching_rooms.exists():
-            context = {'form': form, 'topics': topics, 'error': 'Similar room(s) exist, view? \nNote selecting "Cancel" proceeds to create the room'}
-            return render(request, 'base/room_form.html', context)
-
         Room.objects.create(
             host=request.user,
             topic=topic,
-            name=name,
+            name=request.POST.get('name'),
             description=request.POST.get('description'),
         )
-
         return redirect('home')
 
     context = {'form': form, 'topics': topics}
     return render(request, 'base/room_form.html', context)
-
 
 
 @login_required(login_url='login')
@@ -214,23 +200,19 @@ def activityPage(request):
     return render(request, 'base/activity.html', {'room_messages':room_messages})
 
 def searchSimilar(request):
-    # simiilar_rooms = Room.objects.all()
     
-    # return render(request, 'base/search-similar.html', {'simiilar_rooms':simiilar_rooms})
-    
-    q = request.GET.get('q') if request.GET.get('q') != None else ''
+    room = Room.objects.all()
+    if request.method == 'POST':
+        message = Message.objects.create(
+            user=request.user,
+            room=room,
+            body=request.POST.get('body')
+        )
+        room.participants.add(request.user)
+        return redirect('room', pk=room.id)
 
-    rooms = Room.objects.filter(
-        Q(topic__name__icontains=q) |
-        Q(name__icontains=q) |
-        Q(description__icontains=q)
-    )
-
-    topics = Topic.objects.all()[0:5]
-    room_count = rooms.count()
-    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
-
-    context = {'rooms': rooms, 'topics': topics,
-               'room_count': room_count, 'room_messages': room_messages}
+    context = {'room': room}
     return render(request, 'base/search-similar.html', context)
- 
+    
+    # similar_rooms = []
+    # return render(request, 'base/search-similar.html')
