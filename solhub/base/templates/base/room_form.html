@@ -34,8 +34,7 @@
             </datalist>
           </div>
 
-
-          <div class="form__group">
+          <div class="form__group" value="room_name">
             <label for="room_name">Room Name</label>
             {{form.name}}
           </div>
@@ -51,8 +50,10 @@
 
           <div class="form__action">
             <a class="btn btn--dark"  id="cancel-btn" href="{{request.META.HTTP_REFERER}}">Cancel</a>
-            <button class="btn btn--main" type="submit">Submit</button>
+            <button class="btn btn--main">Search Similar rooms</button>
+            <button class="btn btn--main" type="submit">Create New Room</button>
           </div>
+
         </form>
       </div>
     </div>

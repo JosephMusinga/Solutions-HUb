@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import Room, Topic, Message, User
 from .forms import RoomForm, UserForm, MyUserCreationForm
+import spacy
 
 
 def loginPage(request):
@@ -109,6 +110,7 @@ def userProfile(request, pk):
 def createRoom(request):
     form = RoomForm()
     topics = Topic.objects.all()
+    
     if request.method == 'POST':
         topic_name = request.POST.get('topic')
         topic, created = Topic.objects.get_or_create(name=topic_name)
@@ -195,24 +197,35 @@ def topicsPage(request):
     topics = Topic.objects.filter(name__icontains=q)
     return render(request, 'base/topics.html', {'topics': topics})
 
+
 def activityPage(request):
     room_messages = Message.objects.all()
     return render(request, 'base/activity.html', {'room_messages':room_messages})
 
+
 def searchSimilar(request):
     
-    room = Room.objects.all()
-    if request.method == 'POST':
-        message = Message.objects.create(
-            user=request.user,
-            room=room,
-            body=request.POST.get('body')
-        )
-        room.participants.add(request.user)
-        return redirect('room', pk=room.id)
-
-    context = {'room': room}
-    return render(request, 'base/search-similar.html', context)
+    rooms = Room.objects.all()
+    similar_rooms = []
     
-    # similar_rooms = []
-    # return render(request, 'base/search-similar.html')
+    nlp = spacy.load("en_core_web_md")
+    
+    if request.method == 'POST':
+        room_name = request.POST.get('room_name')
+    
+        if room_name:
+         # Process the provided room name with spaCy
+            doc = nlp(room_name)
+
+         # Iterate over each room and compare their names with the provided room name
+            for room in rooms:
+                room_doc = nlp(room.name)
+                similarity = doc.similarity(room_doc)
+                
+                # If the similarity is 0.8 or higher, consider it a similar room
+                if similarity >= 0.8:
+                    similar_rooms.append(room)
+    
+    context = {'rooms': rooms, 'similar_rooms': similar_rooms}
+    
+    return render(request, 'base/search-similar.html', context)
