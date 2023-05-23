@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib import messages
 from django.db.models import Q
+from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from .models import Room, Topic, Message, User
@@ -60,20 +61,35 @@ def registerPage(request):
 
 
 def home(request):
-    q = request.GET.get('q') if request.GET.get('q') != None else ''
+    q = request.GET.get('q') if request.GET.get('q') else ''
+    nlp = spacy.load('en_core_web_sm')
+    rooms = Room.objects.all()
 
-    rooms = Room.objects.filter(
-        Q(topic__name__icontains=q) |
-        Q(name__icontains=q) |
-        Q(description__icontains=q)
-    )
+    if q:
+        doc = nlp(q)
+        similar_rooms = []
 
-    topics = Topic.objects.all()[0:5]
+        for room in rooms:
+            name_similarity = doc.similarity(nlp(room.name))
+            description_similarity = doc.similarity(nlp(room.description))
+
+              
+            if name_similarity >= 0.4 or description_similarity >= 0.4 :
+                similar_rooms.append(room)
+
+    else:
+        similar_rooms = rooms
+
+    topics = Topic.objects.all()[:5]
     room_count = rooms.count()
-    room_messages = Message.objects.filter(Q(room__topic__name__icontains=q))
+    room_messages = Message.objects.filter(room__topic__name__icontains=q)
 
-    context = {'rooms': rooms, 'topics': topics,
-               'room_count': room_count, 'room_messages': room_messages}
+    context = {
+        'rooms': similar_rooms,
+        'topics': topics,
+        'room_count': room_count,
+        'room_messages': room_messages
+    }
     return render(request, 'base/home.html', context)
 
 
@@ -211,7 +227,7 @@ def searchSimilar(request):
     nlp = spacy.load("en_core_web_md")
     
     if request.method == 'POST':
-        room_name = request.POST.get('room_name')
+        room_name = request.POST.post('room_name')
     
         if room_name:
          # Process the provided room name with spaCy
