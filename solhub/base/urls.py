@@ -20,7 +20,4 @@ urlpatterns = [
     path('topics/', views.topicsPage, name="topics"),
     path('activity/', views.activityPage, name="activity"),
     
-    path('search-similar/', views.searchSimilar, name="search-similar"),
-
-
 ]

@@ -62,7 +62,7 @@ def registerPage(request):
 
 def home(request):
     q = request.GET.get('q') if request.GET.get('q') else ''
-    nlp = spacy.load('en_core_web_sm')
+    nlp = spacy.load('en_core_web_md')
     rooms = Room.objects.all()
 
     if q:
@@ -74,7 +74,7 @@ def home(request):
             description_similarity = doc.similarity(nlp(room.description))
 
               
-            if name_similarity >= 0.4 or description_similarity >= 0.4 :
+            if name_similarity >= 0.7 or description_similarity >=  0.7  :
                 similar_rooms.append(room)
 
     else:
@@ -217,31 +217,3 @@ def topicsPage(request):
 def activityPage(request):
     room_messages = Message.objects.all()
     return render(request, 'base/activity.html', {'room_messages':room_messages})
-
-
-def searchSimilar(request):
-    
-    rooms = Room.objects.all()
-    similar_rooms = []
-    
-    nlp = spacy.load("en_core_web_md")
-    
-    if request.method == 'POST':
-        room_name = request.POST.post('room_name')
-    
-        if room_name:
-         # Process the provided room name with spaCy
-            doc = nlp(room_name)
-
-         # Iterate over each room and compare their names with the provided room name
-            for room in rooms:
-                room_doc = nlp(room.name)
-                similarity = doc.similarity(room_doc)
-                
-                # If the similarity is 0.8 or higher, consider it a similar room
-                if similarity >= 0.8:
-                    similar_rooms.append(room)
-    
-    context = {'rooms': rooms, 'similar_rooms': similar_rooms}
-    
-    return render(request, 'base/search-similar.html', context)
